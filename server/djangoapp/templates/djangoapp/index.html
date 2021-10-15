@@ -43,7 +43,17 @@
             </div>
         </nav>
     <!--Add a dealer table here -->
-
+        {% if dealerships %}
+            <ul>
+            {% for dealer in dealerships %}
+                <div>
+                    <p>{{ dealer.full_name }}</p>
+                </div>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No dealer are available.</p>
+        {% endif %}
     </body>
 
 </html>
