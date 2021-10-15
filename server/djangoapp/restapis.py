@@ -2,7 +2,9 @@ import requests
 import json
 from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
-
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_watson.natural_language_understanding_v1 import Features, SentimentOptions
 
 # Create a `get_request` to make HTTP GET requests
 # e.g., response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
@@ -11,9 +13,7 @@ def get_request(url, **kwargs):
     print(kwargs)
     print("GET from {} ".format(url))
     try:
-        # Call get method of requests library with URL and parameters
-        response = requests.get(url, headers={'Content-Type': 'application/json'},
-                                    params=kwargs)
+        response = requests.get(url, params=kwargs, headers={'Content-Type': 'application/json'})
     except:
         # If any error occurs
         print("Network exception occurred")
@@ -92,7 +92,7 @@ def get_dealer_reviews_from_cf(url, dealerId):
                 car_make=review["car_make"],
                 car_model=review["car_model"],
                 car_year=review["car_year"],
-                sentiment="positive")
+                sentiment=analyze_review_sentiments(review["review"]))
             results.append(review_obj)
 
     return results
@@ -103,5 +103,28 @@ def get_dealer_reviews_from_cf(url, dealerId):
 # - Call get_request() with specified arguments
 # - Get the returned sentiment label such as Positive or Negative
 
+# def analyze_review_sentiments(dealerreview):
+#     api_key="63LkmjfZhjsT0R5TJb1dlv3H8UkRmrwRwoUCWJaduo7s"
+#     url="https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/234d471b-1eee-4b6f-bb79-a9f7da842d41"
 
+#     print(dealerreview)
+#     params = dict(text=dealerreview)
+#     response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
+#                                     auth=HTTPBasicAuth('apikey', api_key))
+#     json_result = json.loads(response.text)
+#     print(json_result)
+#     return json_result
 
+def analyze_review_sentiments(text): 
+
+    url="https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/234d471b-1eee-4b6f-bb79-a9f7da842d41"
+
+    api_key="63LkmjfZhjsT0R5TJb1dlv3H8UkRmrwRwoUCWJaduo7s"
+
+    authenticator = IAMAuthenticator(api_key) 
+    natural_language_understanding = NaturalLanguageUnderstandingV1(version='2021-08-01',authenticator=authenticator) 
+    natural_language_understanding.set_service_url(url) 
+    response = natural_language_understanding.analyze( url='www.wsj.com/news/markets', features=Features(sentiment=SentimentOptions(targets=['bonds']))).get_result() 
+    # label=json.dumps(response, indent=2) 
+    label = response['sentiment']['document']['label']
+    return(label) 
