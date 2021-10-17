@@ -43,17 +43,36 @@
             </div>
         </nav>
     <!--Add a dealer table here -->
-        {% if dealerships %}
-            <ul>
-            {% for dealer in dealerships %}
-                <div>
-                    <p>{{ dealer.full_name }}</p>
-                </div>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p>No dealer are available.</p>
-        {% endif %}
+
+        <table class="table" id="table" data-filter-control="true">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Dealer Name</th>
+                    <th>City</th>
+                    <th>Address</th>
+                    <th>Zip</th>
+                    <th data-field="state" data-filter-control="select">State</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dealer in dealerships %}
+                    <tr>
+                        <td>{{dealer.id}}</td>
+                        <td><a href="{% url 'djangoapp:dealer_details' dealer.id %}">{{dealer.full_name}}</a></td>
+                        <td>{{dealer.city}}</td>
+                        <td>{{dealer.address}}</td>
+                        <td>{{dealer.zip}}</td>
+                        <td>{{dealer.st}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </body>
 
+    <script>
+        $(function() {
+            $('#table').bootstrapTable()
+        })
+    </script>
 </html>
