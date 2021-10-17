@@ -36,12 +36,13 @@ def get_request(url, **kwargs):
 def post_request(url, json_payload, **kwargs):
     print(json_payload)
     print(kwargs)
-    print("GET from {} ".format(url))
+    print("POST from {} ".format(url))
     try:
         response = requests.post(url, params=kwargs, json=json_payload)
         status_code = response.status_code
         print("With status {} ".format(status_code))
         json_data = json.loads(response.text)
+        print(json_data)
         return json_data
     except:
         print("Network exception occurred")
@@ -70,22 +71,17 @@ def get_dealers_from_cf(url, **kwargs):
     return results
 
 def get_dealer_by_id(url, dealerId):
-    results = []
     # Call get_request with a URL parameter
     json_result = get_request(url, dealerId=dealerId)
     if json_result:
         # Get the row list in JSON as dealers
-        dealers = json_result["dealership"]
-        # For each dealer object
-        for dealer in dealers:
-            # Create a CarDealer object
-            dealer_obj = CarDealer(address=dealer["address"], city=dealer["city"], full_name=dealer["full_name"],
-                                   id=dealer["id"], lat=dealer["lat"], long=dealer["long"],
-                                   short_name=dealer["short_name"],
-                                   st=dealer["st"], zip=dealer["zip"])
-            results.append(dealer_obj)
-
-    return results
+        dealer = json_result["dealership"][0]
+        # Create a CarDealer object
+        dealer_obj = CarDealer(address=dealer["address"], city=dealer["city"], full_name=dealer["full_name"],
+                                id=dealer["id"], lat=dealer["lat"], long=dealer["long"],
+                                short_name=dealer["short_name"],
+                                st=dealer["st"], zip=dealer["zip"])
+    return dealer_obj
 # Create a get_dealer_reviews_from_cf method to get reviews by dealer id from a cloud function
 # def get_dealer_by_id_from_cf(url, dealerId):
 # - Call get_request() with specified arguments
