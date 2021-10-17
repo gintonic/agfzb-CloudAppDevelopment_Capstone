@@ -2,9 +2,6 @@ import requests
 import json
 from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
-from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-from ibm_watson import NaturalLanguageUnderstandingV1
-from ibm_watson.natural_language_understanding_v1 import Features, SentimentOptions
 
 # Create a `get_request` to make HTTP GET requests
 # e.g., response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
@@ -13,15 +10,25 @@ def get_request(url, **kwargs):
     print(kwargs)
     print("GET from {} ".format(url))
     try:
-        response = requests.get(url, params=kwargs, headers={'Content-Type': 'application/json'})
+        if "api_key" in kwargs:
+            params=dict()
+            params["text"] = kwargs["text"]
+            params["version"] = kwargs["version"]
+            params["features"] = kwargs["features"]
+            params["language"] = kwargs["language"]
+            params["return_analyzed_text"] = kwargs["return_analyzed_text"]
+            response = requests.get(url + "/v1/analyze", params=params, headers={'Content-Type': 'application/json'},
+                                    auth=HTTPBasicAuth('apikey', kwargs["api_key"]))
+        else:
+            response = requests.get(url, params=kwargs, headers={'Content-Type': 'application/json'})
+
+        status_code = response.status_code
+        print("With status {} ".format(status_code))
+        json_data = json.loads(response.text)
+        return json_data
     except:
         # If any error occurs
         print("Network exception occurred")
-
-    status_code = response.status_code
-    print("With status {} ".format(status_code))
-    json_data = json.loads(response.text)
-    return json_data
 
 # Create a `post_request` to make HTTP POST requests
 # e.g., response = requests.post(url, params=kwargs, json=payload)
@@ -115,16 +122,14 @@ def get_dealer_reviews_from_cf(url, dealerId):
 #     print(json_result)
 #     return json_result
 
-def analyze_review_sentiments(text): 
-
+def analyze_review_sentiments(dealerreview): 
     url="https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/234d471b-1eee-4b6f-bb79-a9f7da842d41"
-
     api_key="63LkmjfZhjsT0R5TJb1dlv3H8UkRmrwRwoUCWJaduo7s"
+    version = "2020-08-01"
+    features = "sentiment"
+    language = "en"
+    return_analyzed_text = True
 
-    authenticator = IAMAuthenticator(api_key) 
-    natural_language_understanding = NaturalLanguageUnderstandingV1(version='2021-08-01',authenticator=authenticator) 
-    natural_language_understanding.set_service_url(url) 
-    response = natural_language_understanding.analyze( url='www.wsj.com/news/markets', features=Features(sentiment=SentimentOptions(targets=['bonds']))).get_result() 
-    # label=json.dumps(response, indent=2) 
-    label = response['sentiment']['document']['label']
-    return(label) 
+    json_result = get_request(url, text=dealerreview, api_key=api_key, version=version, features=features, language=language,
+        return_analyzed_text=return_analyzed_text)
+    return json_result["sentiment"]["document"]["label"]
