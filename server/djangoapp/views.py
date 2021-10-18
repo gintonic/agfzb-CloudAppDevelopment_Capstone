@@ -120,32 +120,34 @@ def get_dealer_details(request, dealer_id):
 
 def add_review(request, dealer_id):
     user = request.user
-    context = dict()
-    context["cars"] = CarModel.objects.all()
     if user.is_authenticated:
         if request.method == "GET":
             url = "https://bb538f6a.us-south.apigw.appdomain.cloud/dealership"
+            context = dict()
             context['dealer'] = get_dealer_by_id(url, dealer_id)
+            context["cars"] = CarModel.objects.all()
 
             return render(request, 'djangoapp/add_review.html', context)
         elif request.method == "POST":
             review = dict()
             review["dealership"] = dealer_id
             review["name"] = user.username
-            if request.POST['content'] == "on":
-                review["purchase"] = True
-            else:
-                review["purchase"] = False
-    
+            review["id"] = user.id
             review["review"] = request.POST['content']
 
-            date = request.POST["purchasedate"].split("/")
-            review["purchase_date"] = datetime(month=int(date[0]), day=int(date[0]), year=int(date[2])).isoformat()
-            
-            car_selected = context["cars"][int(request.POST['car'])]
-            review["car_make"] = car_selected.carMake.name
-            review["car_model"] = car_selected.name
-            review["car_year"] = car_selected.year.strftime("%Y")
+            if request.POST['content'] == "on":
+                review["purchase"] = True
+
+                if request.POST["purchasedate"] != "":
+                    date = request.POST["purchasedate"].split("/")
+                    review["purchase_date"] = datetime(month=int(date[0]), day=int(date[0]), year=int(date[2])).isoformat()
+
+                car_selected = get_object_or_404(CarModel, pk = request.POST['car'])
+                review["car_make"] = car_selected.carMake.name
+                review["car_model"] = car_selected.name
+                review["car_year"] = car_selected.year.strftime("%Y")
+            else:
+                review["purchase"] = False
 
             json_payload = dict()
             json_payload["review"] = review

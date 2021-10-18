@@ -38,7 +38,8 @@ def post_request(url, json_payload, **kwargs):
     print(kwargs)
     print("POST from {} ".format(url))
     try:
-        response = requests.post(url, params=kwargs, json=json_payload)
+        headers = {'content-type' : 'application/json'}
+        response = requests.post(url, headers=headers, params=kwargs, json=json_payload["review"])
         status_code = response.status_code
         print("With status {} ".format(status_code))
         json_data = json.loads(response.text)
@@ -103,32 +104,25 @@ def get_dealer_reviews_from_cf(url, dealerId):
                 purchase=review["purchase"],
                 id=review["id"],
                 review=review["review"],
-                purchase_date=review["purchase_date"],
-                car_make=review["car_make"],
-                car_model=review["car_model"],
-                car_year=review["car_year"],
+                purchase_date=has_key_or_none("purchase_date", review),
+                car_make=has_key_or_none("car_make", review),
+                car_model=has_key_or_none("car_model", review),
+                car_year=has_key_or_none("car_year", review),
                 sentiment=analyze_review_sentiments(review["review"]))
             results.append(review_obj)
 
     return results
 
+def has_key_or_none(key, my_dict):
+    if key in my_dict:
+        return my_dict[key]
+    else:
+        return ""
 
 # Create an `analyze_review_sentiments` method to call Watson NLU and analyze text
 # def analyze_review_sentiments(text):
 # - Call get_request() with specified arguments
 # - Get the returned sentiment label such as Positive or Negative
-
-# def analyze_review_sentiments(dealerreview):
-#     api_key="63LkmjfZhjsT0R5TJb1dlv3H8UkRmrwRwoUCWJaduo7s"
-#     url="https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/234d471b-1eee-4b6f-bb79-a9f7da842d41"
-
-#     print(dealerreview)
-#     params = dict(text=dealerreview)
-#     response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
-#                                     auth=HTTPBasicAuth('apikey', api_key))
-#     json_result = json.loads(response.text)
-#     print(json_result)
-#     return json_result
 
 def analyze_review_sentiments(dealerreview): 
     url="https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/234d471b-1eee-4b6f-bb79-a9f7da842d41"
