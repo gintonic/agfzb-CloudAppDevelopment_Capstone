@@ -135,7 +135,7 @@ def add_review(request, dealer_id):
             review["id"] = user.id
             review["review"] = request.POST['content']
 
-            if request.POST['content'] == "on":
+            if request.POST['purchasecheck'] == "on":
                 review["purchase"] = True
 
                 if request.POST["purchasedate"] != "":
@@ -154,6 +154,6 @@ def add_review(request, dealer_id):
 
             url="https://bb538f6a.us-south.apigw.appdomain.cloud/review"
             response = post_request(url, json_payload, dealerId=dealer_id)
-            return HttpResponse(response)
-            # return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
+            # return HttpResponse(response)
+            return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
 
